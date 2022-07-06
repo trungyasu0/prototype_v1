@@ -9,7 +9,6 @@ public class PlayerController : MonoBehaviour
     private Vector2 _beganTouchPosition, _endTouchPosition, _currentTouchPosition;
     private float _beganTouchTime, _endTouchTime;
     private Touch _touch;
-    private IEnumerator goCoroutine;
 
     private CharacterController _controller;
     private float _velocityX;
@@ -29,18 +28,22 @@ public class PlayerController : MonoBehaviour
 
     private State _playerState;
     private Animator _animator;
-    private Rigidbody _rigidbody;
+    private float _distanceToDes;
+    private Vector2 _rollDir;
+
+    private float _lastInputHorizontal;
+    private float _lastInputVertical;
+
     public float turnSmoothTime = 0.1f;
     public float turnSmoothVelocity;
     public Transform cam;
     public Transform enemyTarget;
     public float speed = 2.0f;
     public float rollSpeed = 3f;
-    public float acceleration = 25f;
-    public float deceleration = 100f;
+    public float acceleration = 50f;
+    public float deceleration = 400;
     public float rollDistance = 2.5f;
-    private float distanceToDes;
-    private Vector2 rollDir;
+
 
     public enum AttackType
     {
@@ -56,7 +59,6 @@ public class PlayerController : MonoBehaviour
     {
         _controller = GetComponent<CharacterController>();
         _animator = GetComponent<Animator>();
-        _rigidbody = GetComponent<Rigidbody>();
         _playerState = State.Any;
     }
 
@@ -74,7 +76,6 @@ public class PlayerController : MonoBehaviour
     private void Update()
     {
         CheckMoveOnSwipe();
-
         if (_playerState == State.Rolling) Roll();
     }
 
@@ -92,7 +93,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            if (_velocity > 0) _velocity -= deceleration * Time.deltaTime;
+            if (_velocity > 0) _velocity -= deceleration * 10 * Time.deltaTime;
         }
     }
 
@@ -100,52 +101,57 @@ public class PlayerController : MonoBehaviour
     {
         if (horizontal != 0)
         {
-            if (Mathf.Abs(_velocityX) < MaxVelocity)
-                _velocityX += acceleration * 2 * Time.deltaTime * horizontal;
+            if (Mathf.Abs(_velocityX) <= MaxVelocity || horizontal != _lastInputHorizontal)
+            {
+                _velocityX += acceleration / 5 * Time.deltaTime * horizontal;
+            }
         }
         else
         {
-            if (_velocityX > 0) _velocityX -= deceleration * Time.deltaTime;
-            if (_velocityX < 0) _velocityX += deceleration * Time.deltaTime;
+            if (_velocityX > 0) _velocityX -= deceleration / 10 * Time.deltaTime;
+            if (_velocityX < 0) _velocityX += deceleration / 10 * Time.deltaTime;
         }
 
         if (vertical != 0)
         {
-            if (Mathf.Abs(_velocityZ) < MaxVelocity)
-                _velocityZ += acceleration * 2 * Time.deltaTime * vertical;
+            if (Mathf.Abs(_velocityZ) < MaxVelocity || vertical != _lastInputVertical)
+                _velocityZ += acceleration * 5 * Time.deltaTime * vertical;
         }
         else
         {
-            if (_velocityZ > 0) _velocityZ -= deceleration * Time.deltaTime;
-            if (_velocityZ < 0) _velocityZ += deceleration * Time.deltaTime;
+            if (_velocityZ > 0) _velocityZ -= deceleration / 10 * Time.deltaTime;
+            if (_velocityZ < 0) _velocityZ += deceleration / 10 * Time.deltaTime;
         }
 
-        Debug.Log("vertical" + _velocityZ + " Horizontal " + _velocityX );
+        Debug.Log("vertical" + _velocityZ + " Horizontal " + _velocityX);
         _animator.SetFloat("Vertical", _velocityZ);
         _animator.SetFloat("Horizontal", _velocityX);
+
+        _lastInputHorizontal = horizontal;
+        _lastInputVertical = vertical;
     }
 
     private void OnRoll(float horizontal, float vertical)
     {
         _velocity = 0;
-        distanceToDes = rollDistance;
+        _distanceToDes = rollDistance;
         AniRolling(horizontal, vertical);
-        rollDir = new Vector2(horizontal, vertical);
+        _rollDir = new Vector2(horizontal, vertical);
         _playerState = State.Rolling;
     }
 
     private void Roll()
     {
-        float horizontal = rollDir.x;
-        float vertical = rollDir.y;
+        float horizontal = _rollDir.x;
+        float vertical = _rollDir.y;
         if (horizontal == 0 && vertical == 0) vertical = -1;
         Vector3 moveDir = CalculatorDirMove(horizontal, vertical);
-        if (_velocity < rollSpeed) _velocity += acceleration * 10 * Time.deltaTime;
+        if (_velocity < rollSpeed) _velocity += acceleration * Time.deltaTime;
         float moveAmount = (moveDir * _velocity * Time.deltaTime).magnitude;
 
-        if (distanceToDes > 0)
+        if (_distanceToDes > 0)
         {
-            distanceToDes -= moveAmount;
+            _distanceToDes -= moveAmount;
             _controller.Move(moveDir * _velocity * Time.deltaTime);
         }
         else
@@ -225,6 +231,7 @@ public class PlayerController : MonoBehaviour
                 _beganTouchPosition = _touch.position;
                 break;
 
+            case TouchPhase.Moved:
             case TouchPhase.Stationary:
                 _currentTouchPosition = _touch.position;
                 var dir = GetDirOfTouchAction(_beganTouchPosition, _currentTouchPosition);
@@ -235,16 +242,19 @@ public class PlayerController : MonoBehaviour
             case TouchPhase.Ended:
                 _endTouchTime = Time.time;
                 _endTouchPosition = _touch.position;
+
+                var distanceFromBeganTouch = Vector2.Distance(_endTouchPosition, _beganTouchPosition);
                 _animator.SetFloat("Vertical", 0);
                 _animator.SetFloat("Horizontal", 0);
 
                 var offsetTime = _endTouchTime - _beganTouchTime;
                 Debug.Log("offset time " + offsetTime);
 
-                if (offsetTime < MiniTimeAttack)
+                if (offsetTime < MiniTimeAttack && distanceFromBeganTouch < 20)
                 {
                     OnAttack();
-                }else if (offsetTime < MiniTimeRoll)
+                }
+                else if (offsetTime < MiniTimeRoll)
                 {
                     var dirRoll = GetDirOfTouchAction(_beganTouchPosition, _endTouchPosition);
                     OnRoll(dirRoll.x, dirRoll.y);
@@ -258,8 +268,8 @@ public class PlayerController : MonoBehaviour
     {
         float vertical;
         float horizontal;
-        if (desPos.x - startPos.x > 30) vertical = 1;
-        else if (desPos.x - startPos.x < -20) vertical = -1;
+        if (desPos.x - startPos.x > 50) vertical = 1;
+        else if (desPos.x - startPos.x < -50) vertical = -1;
         else vertical = 0;
 
         if (desPos.y - startPos.y > 100) horizontal = 1;

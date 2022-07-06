@@ -3952,7 +3952,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7889875087602450278, guid: 574d4eba187450742967a1d66504217b, type: 3}
       propertyPath: deceleration
-      value: 100
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 7889875087602450278, guid: 574d4eba187450742967a1d66504217b, type: 3}
       propertyPath: rollDistance
