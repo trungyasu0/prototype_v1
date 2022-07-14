@@ -60,7 +60,7 @@ public class CameraHandler : MonoBehaviour
         foreach (var collider in colliders)
         {
             var character = collider.GetComponent<Character>();
-            if (character && character != Player.Instance)
+            if (character && character != PlayerController.Instance)
             {
                 Debug.Log("enemy: " + character);
                 return character;
