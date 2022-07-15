@@ -6,8 +6,7 @@ using UnityEngine;
 public class Character : MonoBehaviour
 {
     public Transform lockOnTransform;
-    public float health;
-    public float damage;
+    public float health = 100;
     private Animator _animator;
 
     public int id;
@@ -18,13 +17,15 @@ public class Character : MonoBehaviour
         GetHit,
         Rolling,
         Attacking,
-        Any
+        Locomotion,
+        Dead
     }
 
     private WeaponController _weapon;
+
     private void Awake()
     {
-        state = State.Any;
+        state = State.Locomotion;
         _animator ??= GetComponent<Animator>();
         _weapon ??= GetComponentInChildren<WeaponController>();
 
@@ -33,23 +34,33 @@ public class Character : MonoBehaviour
 
     public void OnGetHit(int attackDamage)
     {
-        // if (state != State.GetHit)
-        // {
-        _animator.SetTrigger("GetHit");
-        health -= attackDamage;
-        // state = State.GetHit;
-        // }
-        if(health <= 0) OnDead();
+        if (state != State.GetHit)
+        {
+            health -= attackDamage;
+            _animator.SetTrigger("GetHit");
+            state = State.GetHit;
+        }
+
+       
     }
+
     private void OnDead()
     {
-        _animator.SetTrigger("OnDead");
+        state = State.Dead;
+        _animator.SetTrigger("Dead");
     }
 
     private void GetHitDone()
     {
-        // state = State.Any;
+        if (health <= 0)
+        {
+            OnDead();
+            return;
+        }
+       
+        state = State.Locomotion;
     }
+
     private void EnableAttackHitBox()
     {
         _weapon.OnEnableHitBox();
@@ -57,5 +68,10 @@ public class Character : MonoBehaviour
     private void DisableAttackHitBox()
     {
         _weapon.OnDisableHitBox();
+    }
+    private void OnAttackFinish()
+    {
+        state = State.Locomotion;
+        Debug.Log("attack finish");
     }
 }

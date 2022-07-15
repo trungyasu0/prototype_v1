@@ -15,11 +15,12 @@ public class WeaponController : MonoBehaviour
     public WeaponState state;
     private Character _owner;
 
-    private int _attackDamage;
+    public int attackDamage = 20;
 
     private void Awake()
     {
         state = WeaponState.Disable;
+        
     }
 
     private void OnTriggerEnter(Collider other)
@@ -27,7 +28,7 @@ public class WeaponController : MonoBehaviour
         var character = other.GetComponent<Character>();
         if (character != null && character != _owner && state == WeaponState.Enable)
         {
-            character.OnGetHit(_attackDamage);
+            character.OnGetHit(attackDamage);
         }
     }
 

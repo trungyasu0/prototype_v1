@@ -68,7 +68,7 @@ public class PlayerController : MonoBehaviour
 
     private void Move(float horizontal = 0f, float vertical = 0f)
     {
-        if(_character.state != Character.State.Any) return;
+        if(_character.state != Character.State.Locomotion) return;
         Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
         if (direction.magnitude >= 0.1f)
         {
@@ -91,7 +91,7 @@ public class PlayerController : MonoBehaviour
     private void OnRoll(float horizontal, float vertical)
     {
         if(horizontal == 0 && vertical == 0) return;
-        if (_character.state == Character.State.Any)
+        if (_character.state == Character.State.Locomotion)
         {
             _character.state = Character.State.Rolling;
             _velocity = 0;
@@ -119,7 +119,7 @@ public class PlayerController : MonoBehaviour
         else
         {
             if (_velocity > 0) _velocity = 0;
-            _character.state = Character.State.Any;
+            _character.state = Character.State.Locomotion;
         }
     }
 
@@ -149,16 +149,17 @@ public class PlayerController : MonoBehaviour
 
     private void OnAttack()
     {
-        if (_character.state == Character.State.Any && _character.state != Character.State.Attacking)
+        if (_character.state == Character.State.Locomotion && _character.state != Character.State.Attacking)
         {
             _character.state = Character.State.Attacking;
-            AniAttack();
 
             var enemy = CameraHandler.Instance.currentTarget;
             var dir = enemy.position - transform.position;
             dir.y = 0;
             Quaternion targetRotation = Quaternion.LookRotation(dir);
             transform.rotation = targetRotation;
+            AniAttack();
+
         }
     }
 
@@ -166,29 +167,22 @@ public class PlayerController : MonoBehaviour
     {
         if (_attackType == AttackType.PunchLeft)
         {
-            _animator.SetTrigger("PunchLeft");
+            _animator.SetTrigger("Attack1");
             _attackType = AttackType.PunchRight;
         }
         else if (_attackType == AttackType.PunchRight)
         {
-            _animator.SetTrigger("PunchRight");
+            _animator.SetTrigger("Attack2");
             _attackType = AttackType.PunchLeft;
         }
 
-        _character.state = Character.State.Any;
     }
-    public void OnBeingAttack()
-    {
-    }
-    private void AniBeingAttack()
-    {
-    }
-
+    
     private void OnSwipe()
     {
         if (Input.touchCount == 0)
         {
-            if (_character.state == Character.State.Any) Move();
+            if (_character.state == Character.State.Locomotion) Move();
             return;
         }
         if (Input.touchCount > 0)
@@ -241,20 +235,8 @@ public class PlayerController : MonoBehaviour
         return new Vector2(vertical, horizontal);
     }
 
-    // private void Hit()
-    // {
-    //     // Debug.Log("Hit action");
-    // }
-    //
-    // private void OnTriggerEnter(Collider other)
-    // {
-    //     var character = other.GetComponent<Character>();
-    //     
-    //     // Debug.Log("enemy: " + character);
-    //
-    //     if (character && character != this)
-    //     {
-    //        
-    //     }
-    // }
+    public Character GetMainPlayer()
+    {
+        return _character;
+    }
 }

@@ -123,6 +123,11 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 23800000, guid: feb977d474a0b384c8da46c27cb6aada, type: 2}
+--- !u!4 &258992410 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2961642619106434793, guid: c6b128573b9f0d1428e83b9edae8b673, type: 3}
+  m_PrefabInstance: {fileID: 1949086677}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &393857440
 GameObject:
   m_ObjectHideFlags: 0
@@ -167,7 +172,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 978ef9c469ff2f74d92e75e5036102d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetTransform: {fileID: 1949086684}
+  targetTransform: {fileID: 258992410}
   cameraTransform: {fileID: 963194228}
   cameraPivotTransform: {fileID: 1624087134}
   followSpeed: 3
@@ -529,11 +534,6 @@ MonoBehaviour:
   acceleration: 50
   deceleration: 400
   rollDistance: 2.5
---- !u!4 &1949086684 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 7951828690748264048, guid: c6b128573b9f0d1428e83b9edae8b673, type: 3}
-  m_PrefabInstance: {fileID: 1949086677}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &2065281981
 PrefabInstance:
   m_ObjectHideFlags: 0
