@@ -88,20 +88,25 @@ public class Character : MonoBehaviour
 
     public void AnimHoldHeavyAttack()
     {
-        _animator.SetBool(_holdHeavyAttack, true);
         state = State.HoldingForHeavyAttack;
+        _animator.SetBool(_holdHeavyAttack, true);
     }
 
     public void AnimHeavyAttack()
     {
-        // _animator.SetBool(_holdHeavyAttack, false);
+        _animator.SetBool(_holdHeavyAttack, false);
         _animator.SetTrigger(_heavyAttack);
         state = State.HeavyAttacking;
     }
-
+    
     public void AnimMove(float speed)
     {
         _animator.SetFloat(_animSpeed, speed);
+    }
+
+    public void SetHoldAnim(bool active)
+    {
+        _animator.SetBool(_holdHeavyAttack, active);
     }
 
     public void OnGetHit(int attackDamage)
@@ -140,6 +145,8 @@ public class Character : MonoBehaviour
     private void OnAttackFinish()
     {        
         Debug.Log("end state attack");
+        
+        // if(state == State.HeavyAttacking) _animator.SetBool(_holdHeavyAttack, false);
         state = State.Locomotion;
         OnEndState();
     }
@@ -160,6 +167,7 @@ public class Character : MonoBehaviour
             case State.Rolling:
                 _playerController.OnNextRoll();
                 break;
+            
         }
 
         nextState = State.None;

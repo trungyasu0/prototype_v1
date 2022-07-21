@@ -34,12 +34,17 @@ public class PlayerController : MonoBehaviour
     public float deceleration = 400;
     public float rollDistance = 2.5f;
 
-    public float maxTimeHeavyAttackHold;
+    public float maxTimeHeavyAttackHold = 0.5f;
 
     private BoxCollider _aoEAttacking;
     private Character _character;
 
+    public float miniDistanceTouch = 10;
+    public float miniTimeHoldAttack = 0.5f;
+
     private bool _rotateToEnemy;
+
+    private bool _isMoving;
 
 
     private void Awake()
@@ -92,7 +97,9 @@ public class PlayerController : MonoBehaviour
 
     private void Move(float horizontal = 0f, float vertical = 0f)
     {
-        if (_character.state != Character.State.Locomotion) return;
+        if (_character.state != Character.State.Locomotion
+            && _character.state != Character.State.HoldingForHeavyAttack)
+            return;
         Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
         if (direction.magnitude >= 0.1f)
         {
@@ -107,8 +114,7 @@ public class PlayerController : MonoBehaviour
 
         _character.AnimMove(_velocity);
     }
-
-
+    
     public void OnRoll(Vector2 dir)
     {
         if (dir.x == 0 && dir.y == 0) return;
@@ -186,21 +192,26 @@ public class PlayerController : MonoBehaviour
 
     public void OnHeavyAttack()
     {
-        if (_character.state != Character.State.HeavyAttacking)
-        {
-            _character.state = Character.State.HeavyAttacking;
-            FaceTheEnemy();
-            _character.AnimHeavyAttack();
-        }
+        if (_character.state != Character.State.HoldingForHeavyAttack) return;
+        FaceTheEnemy();
+        _character.AnimHeavyAttack();
+        Debug.Log("heavy attack!");
+    }
+
+    private IEnumerator IEHeavyAttack()
+    {
+        yield return new WaitForSeconds(maxTimeHeavyAttackHold);
+        Debug.Log("jump in IE heavy attack");
+        OnHeavyAttack();
     }
 
     public void OnHold()
     {
         if (_character.state == Character.State.Locomotion && _character.state != Character.State.HoldingForHeavyAttack)
         {
-            FaceTheEnemy();
             _character.AnimHoldHeavyAttack();
-            Debug.Log("Hold action");
+            Debug.Log("hold attack");
+            StartCoroutine(IEHeavyAttack());
         }
     }
 
@@ -219,7 +230,7 @@ public class PlayerController : MonoBehaviour
         }
 
         float offsetTime = 0;
-        Vector2 dir;
+        float distanceFromBeganTouch = 0;
         switch (_touch.phase)
         {
             case TouchPhase.Began:
@@ -227,28 +238,56 @@ public class PlayerController : MonoBehaviour
                 _beganTouchPosition = _touch.position;
                 break;
             case TouchPhase.Moved:
-            case TouchPhase.Stationary:
-                offsetTime = Time.time - _beganTouchTime;
-                
                 _currentTouchPosition = _touch.position;
-                dir = GetDirOfTouchAction(_beganTouchPosition, _currentTouchPosition);
-                Move(dir.x, dir.y);
+
+                if (_character.state != Character.State.HoldingForHeavyAttack)
+                {
+                    HandleMoveByTouch();
+                    _isMoving = true;
+                }
+               
+                break;
+            
+            case TouchPhase.Stationary:
+                _currentTouchPosition = _touch.position;
+                offsetTime = Time.time - _beganTouchTime;
+                if(_isMoving) HandleMoveByTouch();
+                else
+                {
+                    if (_character.state != Character.State.HoldingForHeavyAttack && offsetTime > MiniTimeAttack)
+                    {
+                        OnHold();
+                    }
+                }
+                
+                
                 break;
             case TouchPhase.Ended:
                 _endTouchTime = Time.time;
                 _endTouchPosition = _touch.position;
                 _velocity = 0;
-                var distanceFromBeganTouch = Vector2.Distance(_endTouchPosition, _beganTouchPosition);
+                _isMoving = false;
+
+                distanceFromBeganTouch = Vector2.Distance(_endTouchPosition, _beganTouchPosition);
                 offsetTime = _endTouchTime - _beganTouchTime;
-                if (offsetTime < MiniTimeAttack && distanceFromBeganTouch < 20)
+                //detect light attack
+                if (offsetTime < MiniTimeAttack && distanceFromBeganTouch < miniDistanceTouch)
                 {
                     OnLightAttack();
                 }
+                //detect roll
                 else if (offsetTime < MiniTimeRoll)
                 {
                     var dirRoll = GetDirOfTouchAction(_beganTouchPosition, _endTouchPosition);
                     OnRoll(dirRoll);
                 }
+
+                //detect heavy attack
+                if (_character.state == Character.State.HoldingForHeavyAttack && offsetTime > miniTimeHoldAttack)
+                {
+                    OnHeavyAttack();
+                }
+
                 break;
         }
     }
@@ -267,6 +306,12 @@ public class PlayerController : MonoBehaviour
 
 
         return new Vector2(vertical, horizontal);
+    }
+
+    private void HandleMoveByTouch()
+    {
+        var dir = GetDirOfTouchAction(_beganTouchPosition, _currentTouchPosition);
+        Move(dir.x, dir.y);
     }
 
     public Character GetMainPlayer()

@@ -534,6 +534,9 @@ MonoBehaviour:
   acceleration: 50
   deceleration: 400
   rollDistance: 2.5
+  maxTimeHeavyAttackHold: 2
+  miniDistanceTouch: 20
+  miniTimeHoldAttack: 0.2
 --- !u!1001 &2065281981
 PrefabInstance:
   m_ObjectHideFlags: 0
