@@ -55,7 +55,7 @@
      <Compile Include="Assets\Src\Script\Character\PlayerController.cs" />
      <Compile Include="Assets\Src\Script\Character\Character.cs" />
      <Compile Include="Assets\Src\Script\Weapon\WeaponController.cs" />
-     <Compile Include="Assets\Src\Camera\CameraHandler.cs" />
+     <Compile Include="Assets\Src\Script\Camera\CameraHandler.cs" />
  <Reference Include="UnityEngine">
  <HintPath>C:/Program Files/Unity/Hub/Editor/2020.3.35f1/Editor/Data/Managed/UnityEngine/UnityEngine.dll</HintPath>
  </Reference>

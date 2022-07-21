@@ -22,7 +22,8 @@ public class PlayerController : MonoBehaviour
     private Animator _animator;
     private float _distanceToDes;
     private Vector2 _rollDir;
-    
+    private Vector2 _nextRoll;
+
 
     public float turnSmoothTime = 0.1f;
     public float turnSmoothVelocity;
@@ -33,18 +34,12 @@ public class PlayerController : MonoBehaviour
     public float deceleration = 400;
     public float rollDistance = 2.5f;
 
+    public float maxTimeHeavyAttackHold;
+
     private BoxCollider _aoEAttacking;
-
     private Character _character;
-    
-    public enum AttackType
-    {
-        PunchLeft,
-        PunchRight,
-        HeavyAttack
-    }
 
-    private AttackType _attackType = AttackType.PunchLeft;
+    private bool _rotateToEnemy;
 
 
     private void Awake()
@@ -53,7 +48,8 @@ public class PlayerController : MonoBehaviour
         _animator ??= GetComponent<Animator>();
         _aoEAttacking ??= GetComponent<BoxCollider>();
         _character ??= GetComponent<Character>();
-        
+
+        _rotateToEnemy = false;
         Instance = this;
     }
 
@@ -61,18 +57,46 @@ public class PlayerController : MonoBehaviour
     {
         OnSwipe();
         if (_character.state == Character.State.Rolling) Roll();
+
+        if (_rotateToEnemy)
+        {
+            var enemyTrans = CameraHandler.Instance.currentTarget;
+            RotateToEnemy(enemyTrans);
+        }
     }
 
-    
-    #region Movement
+    private void FaceTheEnemy()
+    {
+        _rotateToEnemy = true;
+        StartCoroutine(IEFaceTheEnemy());
+    }
+
+    private IEnumerator IEFaceTheEnemy()
+    {
+        yield return new WaitForSeconds(turnSmoothTime + 0.1f);
+        _rotateToEnemy = false;
+    }
+
+    public void RotateToEnemy(Transform enemyTrans)
+    {
+        var dir = enemyTrans.position - transform.position;
+        dir.y = 0;
+        if (dir.magnitude >= 0.1f)
+        {
+            float targetAngle = Mathf.Atan2(dir.x, dir.z) * Mathf.Rad2Deg;
+            float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity,
+                turnSmoothTime);
+            transform.rotation = Quaternion.Euler(0f, angle, 0f);
+        }
+    }
 
     private void Move(float horizontal = 0f, float vertical = 0f)
     {
-        if(_character.state != Character.State.Locomotion) return;
+        if (_character.state != Character.State.Locomotion) return;
         Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
         if (direction.magnitude >= 0.1f)
         {
-            Vector3 moveDir = CalculatorDirMove(horizontal, vertical);
+            Vector3 moveDir = CalculatorDirMove(new Vector2(horizontal, vertical));
             if (_velocity < speed) _velocity += acceleration * Time.deltaTime;
             _controller.Move(moveDir * _velocity * Time.deltaTime);
         }
@@ -80,36 +104,37 @@ public class PlayerController : MonoBehaviour
         {
             if (_velocity > 0) _velocity -= deceleration * Time.deltaTime;
         }
-        AniMove();
+
+        _character.AnimMove(_velocity);
     }
 
-    private void AniMove()
-    {
-        _animator.SetFloat("Speed", _velocity);
-    }
 
-    private void OnRoll(float horizontal, float vertical)
+    public void OnRoll(Vector2 dir)
     {
-        if(horizontal == 0 && vertical == 0) return;
+        if (dir.x == 0 && dir.y == 0) return;
         if (_character.state == Character.State.Locomotion)
         {
             _character.state = Character.State.Rolling;
             _velocity = 0;
-            AniRolling();
-            _rollDir = new Vector2(horizontal, vertical);
+            _character.AnimRoll();
+            _rollDir = dir;
             _distanceToDes = rollDistance;
+        }
+        else
+        {
+            _character.nextState = Character.State.Rolling;
+            _nextRoll = dir;
         }
     }
 
     private void Roll()
     {
-        float horizontal = _rollDir.x;
-        float vertical = _rollDir.y;
-        Vector3 moveDir = CalculatorDirMove(horizontal, vertical);
+        Vector3 moveDir = CalculatorDirMove(_rollDir);
         if (_velocity < rollSpeed)
         {
             _velocity += acceleration * Time.deltaTime;
         }
+
         float moveAmount = (moveDir * _velocity * Time.deltaTime).magnitude;
         if (_distanceToDes > 0)
         {
@@ -123,14 +148,14 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void AniRolling()
+    public void OnNextRoll()
     {
-        _animator.SetTrigger("RollForward");
+        OnRoll(_nextRoll);
     }
 
-    private Vector3 CalculatorDirMove(float horizontal, float vertical)
+    private Vector3 CalculatorDirMove(Vector2 dir)
     {
-        Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
+        Vector3 direction = new Vector3(dir.x, 0f, dir.y).normalized;
         if (direction.magnitude >= 0.1f)
         {
             float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + cam.eulerAngles.y;
@@ -144,40 +169,42 @@ public class PlayerController : MonoBehaviour
         return new Vector3(0, 0, 0);
     }
 
-    #endregion
-
-
-    private void OnAttack()
+    public void OnLightAttack()
     {
-        if (_character.state == Character.State.Locomotion && _character.state != Character.State.Attacking)
+        if (_character.state == Character.State.Locomotion && _character.state != Character.State.LightAttacking)
         {
-            _character.state = Character.State.Attacking;
+            FaceTheEnemy();
 
-            var enemy = CameraHandler.Instance.currentTarget;
-            var dir = enemy.position - transform.position;
-            dir.y = 0;
-            Quaternion targetRotation = Quaternion.LookRotation(dir);
-            transform.rotation = targetRotation;
-            AniAttack();
-
+            _character.state = Character.State.LightAttacking;
+            _character.AnimMoveSetLightAttack();
+        }
+        else
+        {
+            _character.nextState = Character.State.LightAttacking;
         }
     }
 
-    private void AniAttack()
+    public void OnHeavyAttack()
     {
-        if (_attackType == AttackType.PunchLeft)
+        if (_character.state != Character.State.HeavyAttacking)
         {
-            _animator.SetTrigger("Attack1");
-            _attackType = AttackType.PunchRight;
+            _character.state = Character.State.HeavyAttacking;
+            FaceTheEnemy();
+            _character.AnimHeavyAttack();
         }
-        else if (_attackType == AttackType.PunchRight)
-        {
-            _animator.SetTrigger("Attack2");
-            _attackType = AttackType.PunchLeft;
-        }
-
     }
-    
+
+    public void OnHold()
+    {
+        if (_character.state == Character.State.Locomotion && _character.state != Character.State.HoldingForHeavyAttack)
+        {
+            FaceTheEnemy();
+            _character.AnimHoldHeavyAttack();
+            Debug.Log("Hold action");
+        }
+    }
+
+
     private void OnSwipe()
     {
         if (Input.touchCount == 0)
@@ -185,10 +212,14 @@ public class PlayerController : MonoBehaviour
             if (_character.state == Character.State.Locomotion) Move();
             return;
         }
+
         if (Input.touchCount > 0)
         {
             _touch = Input.GetTouch(0);
         }
+
+        float offsetTime = 0;
+        Vector2 dir;
         switch (_touch.phase)
         {
             case TouchPhase.Began:
@@ -197,8 +228,10 @@ public class PlayerController : MonoBehaviour
                 break;
             case TouchPhase.Moved:
             case TouchPhase.Stationary:
+                offsetTime = Time.time - _beganTouchTime;
+                
                 _currentTouchPosition = _touch.position;
-                var dir = GetDirOfTouchAction(_beganTouchPosition, _currentTouchPosition);
+                dir = GetDirOfTouchAction(_beganTouchPosition, _currentTouchPosition);
                 Move(dir.x, dir.y);
                 break;
             case TouchPhase.Ended:
@@ -206,19 +239,20 @@ public class PlayerController : MonoBehaviour
                 _endTouchPosition = _touch.position;
                 _velocity = 0;
                 var distanceFromBeganTouch = Vector2.Distance(_endTouchPosition, _beganTouchPosition);
-                var offsetTime = _endTouchTime - _beganTouchTime;
+                offsetTime = _endTouchTime - _beganTouchTime;
                 if (offsetTime < MiniTimeAttack && distanceFromBeganTouch < 20)
                 {
-                    OnAttack();
+                    OnLightAttack();
                 }
                 else if (offsetTime < MiniTimeRoll)
                 {
                     var dirRoll = GetDirOfTouchAction(_beganTouchPosition, _endTouchPosition);
-                    OnRoll(dirRoll.x, dirRoll.y);
+                    OnRoll(dirRoll);
                 }
                 break;
         }
     }
+
     private Vector2 GetDirOfTouchAction(Vector2 startPos, Vector2 desPos)
     {
         float vertical;

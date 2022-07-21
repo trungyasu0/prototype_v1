@@ -15,7 +15,7 @@ public class WeaponController : MonoBehaviour
     public WeaponState state;
     private Character _owner;
 
-    public int attackDamage = 20;
+    public int attackDamage;
 
     private void Awake()
     {
