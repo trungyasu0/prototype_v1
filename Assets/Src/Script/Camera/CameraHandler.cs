@@ -6,8 +6,8 @@ using UnityEngine;
 public class CameraHandler : MonoBehaviour
 {
     public Transform targetTransform;
-    public Transform cameraTransform;
-    public Transform cameraPivotTransform;
+    // public Transform cameraTransform;
+    // public Transform cameraPivotTransform;
 
     public static CameraHandler Instance;
 
@@ -16,7 +16,6 @@ public class CameraHandler : MonoBehaviour
     public float followSpeed = 0.1f;
     public float smoothTimeMove = 0.2f;
     public Transform currentTarget;
-
     private void Awake()
     {
         Instance = this;
@@ -25,19 +24,19 @@ public class CameraHandler : MonoBehaviour
     private void Start()
     {
         var enemy = FindEnemy();
-        currentTarget = enemy.lockOnTransform;
+        if (enemy) currentTarget = enemy.lockOnTransform;
     }
 
     private void Update()
     {
         if (targetTransform)
         {
-            FollowTarget(Time.fixedTime);
+            FollowCharacter(Time.fixedTime);
             LockOnTarget();
         }
     }
 
-    private void FollowTarget(float delta)
+    private void FollowCharacter(float delta)
     {
         // Vector3 targetPosition = Vector3.Lerp(transform.position, targetTransform.position, delta/followSpeed);
         Vector3 smoothPos =
@@ -48,14 +47,22 @@ public class CameraHandler : MonoBehaviour
 
     private void LockOnTarget()
     {
-        if (!currentTarget) return;
-        var dir = currentTarget.position - transform.position;
-        dir.Normalize();
-        dir.y *= -1;
-        dir.y = Math.Max(-0.2f, dir.y);
+        if (!currentTarget)
+        {
+            var enemy = FindEnemy();
+            if (enemy) currentTarget = enemy.lockOnTransform;
+        }
+        else
+        {
+            var dir = currentTarget.position - transform.position;
+            dir.Normalize();
+            dir.y *= -1;
+            dir.y = Math.Max(-0.2f, dir.y);
+
+            Quaternion targetRotation = Quaternion.LookRotation(dir);
+            transform.rotation = targetRotation;
+        }
         
-        Quaternion targetRotation = Quaternion.LookRotation(dir);
-        transform.rotation = targetRotation;
     }
 
     private Character FindEnemy()
@@ -64,13 +71,10 @@ public class CameraHandler : MonoBehaviour
         foreach (var collider in colliders)
         {
             var character = collider.GetComponent<Character>();
-            if (character && character != PlayerController.Instance.GetMainPlayer())
-            {
-                Debug.Log("enemy: " + character);
-                return character;
-            }
+            if (!character) continue;
+            if (character.photonView.IsMine) continue;
+            return character;
         }
-
         return null;
     }
 }

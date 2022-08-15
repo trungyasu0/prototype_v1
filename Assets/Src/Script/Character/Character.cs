@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Photon.Pun;
 
 public class Character : MonoBehaviour
 {
@@ -9,7 +10,8 @@ public class Character : MonoBehaviour
     public float health = 100;
     public int id;
     public State state;
-
+    public GameObject cameraHolder;
+    
     public enum State
     {
         None,
@@ -36,6 +38,9 @@ public class Character : MonoBehaviour
     private int _heavyAttack;
     
     
+    public PhotonView photonView;
+
+    
     private PlayerController _playerController;
 
     public State nextState;
@@ -48,11 +53,22 @@ public class Character : MonoBehaviour
         _animator ??= GetComponent<Animator>();
         _playerController ??= GetComponent<PlayerController>();
         _weapon ??= GetComponentInChildren<WeaponController>();
+        photonView ??= GetComponent<PhotonView>();
 
+        if (!photonView.IsMine)
+        {
+            _playerController.enabled = false;
+            cameraHolder.SetActive(false);
+        }
+        else
+        {
+            _playerController.enabled = true;
+            cameraHolder.SetActive(true);
+        }
+        
+        
         _currentIndexLightAttack = 0;
-
         if (_weapon) _weapon.SetOwner(this);
-
         InitAnimation();
     }
     
@@ -144,9 +160,6 @@ public class Character : MonoBehaviour
     }
     private void OnAttackFinish()
     {        
-        Debug.Log("end state attack");
-        
-        // if(state == State.HeavyAttacking) _animator.SetBool(_holdHeavyAttack, false);
         state = State.Locomotion;
         OnEndState();
     }
@@ -167,7 +180,6 @@ public class Character : MonoBehaviour
             case State.Rolling:
                 _playerController.OnNextRoll();
                 break;
-            
         }
 
         nextState = State.None;

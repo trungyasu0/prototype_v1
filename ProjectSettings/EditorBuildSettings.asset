@@ -8,4 +8,13 @@ EditorBuildSettings:
   - enabled: 0
     path: 
     guid: 00000000000000000000000000000000
+  - enabled: 1
+    path: Assets/Scenes/LoginScene.unity
+    guid: 9568b102c81237044bb66c981d90c91f
+  - enabled: 1
+    path: Assets/Scenes/JoinRoomScene.unity
+    guid: fba85578e406ded47b43f869092b9b8d
+  - enabled: 1
+    path: Assets/Scenes/MainGameScene.unity
+    guid: 9fc0d4010bbf28b4594072e72b8655ab
   m_configObjects: {}

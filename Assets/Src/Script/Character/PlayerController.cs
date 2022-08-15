@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using Photon.Pun;
+using Photon.Realtime;
 using UnityEditor;
 using UnityEngine;
 
@@ -43,8 +45,9 @@ public class PlayerController : MonoBehaviour
     public float miniTimeHoldAttack = 0.5f;
 
     private bool _rotateToEnemy;
-
     private bool _isMoving;
+
+    private CameraHandler _cameraHandler;
 
 
     private void Awake()
@@ -53,6 +56,8 @@ public class PlayerController : MonoBehaviour
         _animator ??= GetComponent<Animator>();
         _aoEAttacking ??= GetComponent<BoxCollider>();
         _character ??= GetComponent<Character>();
+
+        _cameraHandler = _character.cameraHolder.GetComponent<CameraHandler>();
 
         _rotateToEnemy = false;
         Instance = this;
@@ -65,13 +70,15 @@ public class PlayerController : MonoBehaviour
 
         if (_rotateToEnemy)
         {
-            var enemyTrans = CameraHandler.Instance.currentTarget;
+            var enemyTrans = _cameraHandler.currentTarget;
+            if(!enemyTrans) return;
             RotateToEnemy(enemyTrans);
         }
     }
 
     private void FaceTheEnemy()
     {
+        Debug.Log("face to enemy!!");
         _rotateToEnemy = true;
         StartCoroutine(IEFaceTheEnemy());
     }
@@ -82,7 +89,7 @@ public class PlayerController : MonoBehaviour
         _rotateToEnemy = false;
     }
 
-    public void RotateToEnemy(Transform enemyTrans)
+    private void RotateToEnemy(Transform enemyTrans)
     {
         var dir = enemyTrans.position - transform.position;
         dir.y = 0;
@@ -114,8 +121,8 @@ public class PlayerController : MonoBehaviour
 
         _character.AnimMove(_velocity);
     }
-    
-    public void OnRoll(Vector2 dir)
+
+    private void OnRoll(Vector2 dir)
     {
         if (dir.x == 0 && dir.y == 0) return;
         if (_character.state == Character.State.Locomotion)
@@ -190,29 +197,25 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void OnHeavyAttack()
+    private void OnHeavyAttack()
     {
         if (_character.state != Character.State.HoldingForHeavyAttack) return;
         FaceTheEnemy();
         _character.AnimHeavyAttack();
-        Debug.Log("heavy attack!");
     }
 
     private IEnumerator IEHeavyAttack()
     {
         yield return new WaitForSeconds(maxTimeHeavyAttackHold);
-        Debug.Log("jump in IE heavy attack");
         OnHeavyAttack();
     }
 
-    public void OnHold()
+    private void OnHold()
     {
-        if (_character.state == Character.State.Locomotion && _character.state != Character.State.HoldingForHeavyAttack)
-        {
-            _character.AnimHoldHeavyAttack();
-            Debug.Log("hold attack");
-            StartCoroutine(IEHeavyAttack());
-        }
+        if (_character.state != Character.State.Locomotion ||
+            _character.state == Character.State.HoldingForHeavyAttack) return;
+        _character.AnimHoldHeavyAttack();
+        StartCoroutine(IEHeavyAttack());
     }
 
 
@@ -229,8 +232,7 @@ public class PlayerController : MonoBehaviour
             _touch = Input.GetTouch(0);
         }
 
-        float offsetTime = 0;
-        float distanceFromBeganTouch = 0;
+        float offsetTime;
         switch (_touch.phase)
         {
             case TouchPhase.Began:
@@ -268,7 +270,7 @@ public class PlayerController : MonoBehaviour
                 _velocity = 0;
                 _isMoving = false;
 
-                distanceFromBeganTouch = Vector2.Distance(_endTouchPosition, _beganTouchPosition);
+                var distanceFromBeganTouch = Vector2.Distance(_endTouchPosition, _beganTouchPosition);
                 offsetTime = _endTouchTime - _beganTouchTime;
                 //detect light attack
                 if (offsetTime < MiniTimeAttack && distanceFromBeganTouch < miniDistanceTouch)
@@ -292,7 +294,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private Vector2 GetDirOfTouchAction(Vector2 startPos, Vector2 desPos)
+    private static Vector2 GetDirOfTouchAction(Vector2 startPos, Vector2 desPos)
     {
         float vertical;
         float horizontal;

@@ -22,7 +22,6 @@ public class WeaponController : MonoBehaviour
         state = WeaponState.Disable;
         
     }
-
     private void OnTriggerEnter(Collider other)
     {
         var character = other.GetComponent<Character>();
@@ -31,18 +30,14 @@ public class WeaponController : MonoBehaviour
             character.OnGetHit(attackDamage);
         }
     }
-
     public void OnEnableHitBox()
     {
         state = WeaponState.Enable;
     }
-
     public void OnDisableHitBox()
     {
         state = WeaponState.Disable;
     }
-
-    
     public void SetOwner(Character owner)
     {
         _owner = owner;
