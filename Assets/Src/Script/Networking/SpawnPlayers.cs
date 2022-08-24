@@ -16,10 +16,8 @@ public class SpawnPlayers : MonoBehaviour
     private void Start()
     {
         _currentRoom = PhotonNetwork.CurrentRoom;
-
         var numPlayer = _currentRoom.Players.Count;
-        var player = PhotonNetwork.Instantiate(playerPrefab.name, listSpawnPosition[numPlayer - 1].position, Quaternion.identity);
-
+        PhotonNetwork.Instantiate(playerPrefab.name, listSpawnPosition[numPlayer - 1].position, Quaternion.identity);
         
     }
 }
