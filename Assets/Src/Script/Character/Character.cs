@@ -8,10 +8,16 @@ using Photon.Pun;
 public class Character : MonoBehaviour
 {
     public Transform lockOnTransform;
-    public float health = 100;
-    public int id;
     public State state;
     public GameObject cameraHolder;
+
+    [SerializeField]
+    public StatConfig configStat;
+
+    private float _health;
+    private float _poise;
+    private float _stamina;
+    private float _defensiveResist;
     
     public enum State
     {
@@ -22,6 +28,7 @@ public class Character : MonoBehaviour
         LightAttacking,
         HeavyAttacking,
         HoldingForHeavyAttack,
+        Defensive,
         Dead
     }
 
@@ -38,41 +45,51 @@ public class Character : MonoBehaviour
     private int _animGetHit;
     private int _animHoldHeavyAttack;
     private int _animHeavyAttack;
+    private int _animDefensive;
+    private int _animKnockBack;
 
-    public CharacterStat characterStat;
     public PhotonView photonView;
-
 
     public State nextState;
     public float timeResetQueueAction;
-    
+
     private void Awake()
     {
-        state = State.Locomotion;
-        _animator ??= GetComponent<Animator>();
-        _playerController ??= GetComponent<PlayerController>();
-        _baseMeleeWeapon ??= GetComponentInChildren<BaseMeleeWeapon>();
         photonView ??= GetComponent<PhotonView>();
+        _playerController ??= GetComponent<PlayerController>();
+        _animator ??= GetComponent<Animator>();
+        _baseMeleeWeapon ??= GetComponentInChildren<BaseMeleeWeapon>();
+        if (_baseMeleeWeapon) _baseMeleeWeapon.SetOwner(this);
+        
+        state = State.Locomotion;
+        InitAnimation();
 
-        if (!photonView.IsMine)
+        _currentIndexLightAttack = 0;
+
+        if (photonView == null || !photonView.IsMine)
         {
             _playerController.enabled = false;
             cameraHolder.SetActive(false);
+            return;
         }
-        else
-        {
-            _playerController.enabled = true;
-            cameraHolder.SetActive(true);
-        }
-        
-        
-        _currentIndexLightAttack = 0;
-        if (_baseMeleeWeapon) _baseMeleeWeapon.SetOwner(this);
-        InitAnimation();
-        
-        characterStat.Init();
+
+        _playerController.enabled = true;
+        cameraHolder.SetActive(true);
     }
-    
+
+    private void Start()
+    {
+        _health = configStat.maxHeal;
+        _poise = configStat.maxPoise;
+        _stamina = configStat.maxStamina;
+        _defensiveResist = configStat.defensiveResist;
+
+        if (photonView != null && photonView.IsMine)
+        {
+            MainSceneUI.Instance.Init(_playerController);
+        }
+    }
+
     private void InitAnimation()
     {
         _moveSetLightAttack = new List<int>
@@ -88,12 +105,16 @@ public class Character : MonoBehaviour
         _animGetHit = Animator.StringToHash("GetHit");
         _animHoldHeavyAttack = Animator.StringToHash("Hold");
         _animHeavyAttack = Animator.StringToHash("HeavyAttack1");
+        _animDefensive = Animator.StringToHash("Defensive");
+        _animKnockBack = Animator.StringToHash("KnockBack");
     }
+
     public void AnimRoll()
     {
         StartCoroutine(ResetQueueAction());
         _animator.SetTrigger(_animRoll);
     }
+
     public void AnimMoveSetLightAttack()
     {
         StartCoroutine(ResetQueueAction());
@@ -108,26 +129,56 @@ public class Character : MonoBehaviour
         state = State.HoldingForHeavyAttack;
         _animator.SetBool(_animHoldHeavyAttack, true);
     }
+
     public void AnimHeavyAttack()
     {
         _animator.SetBool(_animHoldHeavyAttack, false);
         _animator.SetTrigger(_animHeavyAttack);
         state = State.HeavyAttacking;
     }
+
     public void AnimMove(float speed)
     {
         _animator.SetFloat(_animSpeed, speed);
     }
+
     public void SetHoldAnim(bool active)
     {
         _animator.SetBool(_animHoldHeavyAttack, active);
     }
 
-    public void OnGetHit()
+    public void AnimDefensive(bool active)
     {
-        _animator.SetTrigger(_animGetHit);
+        _animator.SetBool(_animDefensive, active);
+    }
+
+    public void AnimKnockBack(int type)
+    {
+        _animator.SetInteger(_animKnockBack, type);
+    }
+
+    private void OnGetHit()
+    {
+        if (state == State.Defensive)
+        {
+            switch (_poise < configStat.maxPoise / 2)
+            {
+                case true:
+                    //heavy knock back
+                    AnimKnockBack(2);
+                    break;
+                default:
+                    //ez knock back
+                    AnimKnockBack(1);
+                    break;
+            }
+        }
+        else
+        {
+            _animator.SetTrigger(_animGetHit);
+        }
+
         state = State.GetHit;
-        
     }
 
     private IEnumerator ResetQueueAction()
@@ -138,51 +189,73 @@ public class Character : MonoBehaviour
 
     public void BeingAttack(AttackerPack attackerPack)
     {
-        if(state == State.Rolling) return;
-        characterStat.heal -= attackerPack.damage;
-        characterStat.poise -= attackerPack.poiseDamage;
-
-        if (characterStat.poise <= 0)
+        switch (state)
         {
-            OnGetHit();
+            case State.Rolling:
+            case State.Dead:
+            case State.GetHit:
+                break;
+
+            case State.Defensive:
+                FilterDamageByDefensive(attackerPack);
+                _health -= attackerPack.damage;
+                _poise -= attackerPack.poiseDamage;
+                OnGetHit();
+
+                break;
+            default:
+                _health -= attackerPack.damage;
+                _poise -= attackerPack.poiseDamage;
+                OnGetHit();
+
+                break;
         }
-        
+
+        if (!(_health <= 0)) return;
+        OnDead();
     }
-    
+
+    private void FilterDamageByDefensive(AttackerPack attackerPack)
+    {
+        attackerPack.damage *= configStat.defensiveResist / 100;
+    }
+
     //function call by frame of anim action
     private void OnDead()
     {
         state = State.Dead;
         _animator.SetTrigger(_animDead);
     }
+
     private void GetHitDone()
     {
-        if (characterStat.heal <= 0)
-        {
-            OnDead();
-            return;
-        }
+        
 
         state = State.Locomotion;
-        characterStat.RefillPoise();
+        _poise = configStat.maxPoise;
     }
+
     private void EnableAttackHitBox()
     {
         _baseMeleeWeapon.OnEnableHitBox();
     }
+
     private void DisableAttackHitBox()
     {
         _baseMeleeWeapon.OnDisableHitBox();
     }
+
     private void OnAttackFinish()
-    {        
+    {
         state = State.Locomotion;
         OnEndState();
     }
+
     private void OnRollFinish()
     {
         OnEndState();
     }
+
     private void OnEndState()
     {
         switch (nextState)
@@ -199,30 +272,5 @@ public class Character : MonoBehaviour
 
         nextState = State.None;
     }
-
-
-
 }
 
-public class CharacterStat
-{
-    public float heal;
-    public float poise;
-    public float stamina;
-
-    public float maxHeal;
-    public float maxPoise;
-    public float maxStamina;
-
-    public void RefillPoise()
-    {
-        poise = maxPoise;
-    }
-
-    public void Init()
-    {
-        heal = maxHeal;
-        poise = maxPoise;
-        stamina = maxStamina;
-    }
-}

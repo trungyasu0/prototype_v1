@@ -13,4 +13,10 @@ public class AttackerPack
         this.damage = damage;
         this.poiseDamage = poiseDamage;
     }
+
+    public AttackerPack()
+    {
+        damage = 0;
+        poiseDamage = 0;
+    }
 }

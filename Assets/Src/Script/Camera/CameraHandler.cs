@@ -16,6 +16,9 @@ public class CameraHandler : MonoBehaviour
     public float followSpeed = 0.1f;
     public float smoothTimeMove = 0.2f;
     public Transform currentTarget;
+
+    public Character _character;
+
     private void Awake()
     {
         Instance = this;
@@ -62,7 +65,6 @@ public class CameraHandler : MonoBehaviour
             Quaternion targetRotation = Quaternion.LookRotation(dir);
             transform.rotation = targetRotation;
         }
-        
     }
 
     private Character FindEnemy()
@@ -71,10 +73,13 @@ public class CameraHandler : MonoBehaviour
         foreach (var collider in colliders)
         {
             var character = collider.GetComponent<Character>();
-            if (!character) continue;
-            if (character.photonView.IsMine) continue;
+            if (!character 
+                // || character.photonView == null
+               ) continue;
+            if (character == _character) continue;
             return character;
         }
+
         return null;
     }
 }

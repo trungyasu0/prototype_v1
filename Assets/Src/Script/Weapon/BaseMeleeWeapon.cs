@@ -17,7 +17,9 @@ public class BaseMeleeWeapon : MonoBehaviour
 
     public float lightAttackDamage;
     public float heavyAttackDamage;
-    public float poiseDamage;
+
+    public float heavyPoiseDamage;
+    public float lightPoiseDamage;
 
 
     private void Awake()
@@ -29,14 +31,13 @@ public class BaseMeleeWeapon : MonoBehaviour
     {
         var character = other.GetComponent<Character>();
         if (character == null || character == _owner || state != WeaponState.Enable) return;
-        var damage = _owner.state switch
+        var attackerPack = _owner.state switch
         {
-            Character.State.HeavyAttacking => heavyAttackDamage,
-            Character.State.LightAttacking => lightAttackDamage,
-            _ => 0
+            Character.State.HeavyAttacking => new AttackerPack(heavyAttackDamage, heavyPoiseDamage),
+            Character.State.LightAttacking => new AttackerPack(heavyAttackDamage, lightPoiseDamage),
+            _ => new AttackerPack()
         };
 
-        var attackerPack = new AttackerPack(damage, poiseDamage);
         character.BeingAttack(attackerPack);
     }
     public void OnEnableHitBox()

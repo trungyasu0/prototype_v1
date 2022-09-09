@@ -405,6 +405,12 @@ MonoBehaviour:
   - Type: 9
     SynchronizeType: 1
     Name: HeavyAttack1
+  - Type: 4
+    SynchronizeType: 1
+    Name: Defensive
+  - Type: 3
+    SynchronizeType: 1
+    Name: KnockBack
   m_SynchronizeLayers:
   - SynchronizeType: 0
     LayerIndex: 0

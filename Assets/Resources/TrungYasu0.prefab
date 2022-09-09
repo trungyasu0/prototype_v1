@@ -385,26 +385,6 @@ MonoBehaviour:
   sceneViewId: 0
   InstantiationId: 0
   isRuntimeInstantiated: 0
---- !u!114 &4237389676399172381
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4184179307135823311}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 83eab11bbeda2a649afce7db2f6891f0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  lockOnTransform: {fileID: 1580489753001028060}
-  health: 100
-  id: 0
-  state: 0
-  cameraHolder: {fileID: 4798532245114772953}
-  photonView: {fileID: 0}
-  nextState: 0
-  timeResetQueueAction: 0.5
 --- !u!114 &3522768493542791015
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -438,6 +418,26 @@ MonoBehaviour:
     InterpolateOption: 0
     InterpolateMoveTowardsSpeed: 1
     InterpolateLerpSpeed: 0
+--- !u!114 &4237389676399172381
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4184179307135823311}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83eab11bbeda2a649afce7db2f6891f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lockOnTransform: {fileID: 1580489753001028060}
+  health: 100
+  id: 0
+  state: 0
+  cameraHolder: {fileID: 4798532245114772953}
+  photonView: {fileID: 0}
+  nextState: 0
+  timeResetQueueAction: 0.5
 --- !u!114 &5928675213203382132
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -524,4 +524,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   state: 1
-  attackDamage: 33
+  lightAttackDamage: 0
+  heavyAttackDamage: 0
+  poiseDamage: 0

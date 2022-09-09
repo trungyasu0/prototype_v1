@@ -63,6 +63,10 @@ public class PlayerController : MonoBehaviour
         Instance = this;
     }
 
+    private void Start()
+    {
+    }
+
     private void Update()
     {
         OnSwipe();
@@ -71,14 +75,13 @@ public class PlayerController : MonoBehaviour
         if (_rotateToEnemy)
         {
             var enemyTrans = _cameraHandler.currentTarget;
-            if(!enemyTrans) return;
+            if (!enemyTrans) return;
             RotateToEnemy(enemyTrans);
         }
     }
 
     private void FaceTheEnemy()
     {
-        Debug.Log("face to enemy!!");
         _rotateToEnemy = true;
         StartCoroutine(IEFaceTheEnemy());
     }
@@ -212,10 +215,24 @@ public class PlayerController : MonoBehaviour
 
     private void OnHold()
     {
-        if (_character.state != Character.State.Locomotion ||
-            _character.state == Character.State.HoldingForHeavyAttack) return;
+        if (_character.state != Character.State.Locomotion) return;
         _character.AnimHoldHeavyAttack();
         StartCoroutine(IEHeavyAttack());
+    }
+
+    public void OnDefensive()
+    {
+        if (_character.state != Character.State.Locomotion) return;
+        _character.state = Character.State.Defensive;
+        _rotateToEnemy = true;
+        _character.AnimDefensive(true);
+    }
+
+    public void OnCancelDefensive()
+    {
+        _character.state = Character.State.Locomotion;
+        _rotateToEnemy = false;
+        _character.AnimDefensive(false);
     }
 
 
@@ -247,13 +264,13 @@ public class PlayerController : MonoBehaviour
                     HandleMoveByTouch();
                     _isMoving = true;
                 }
-               
+
                 break;
-            
+
             case TouchPhase.Stationary:
                 _currentTouchPosition = _touch.position;
                 offsetTime = Time.time - _beganTouchTime;
-                if(_isMoving) HandleMoveByTouch();
+                if (_isMoving) HandleMoveByTouch();
                 else
                 {
                     if (_character.state != Character.State.HoldingForHeavyAttack && offsetTime > MiniTimeAttack)
@@ -261,8 +278,8 @@ public class PlayerController : MonoBehaviour
                         OnHold();
                     }
                 }
-                
-                
+
+
                 break;
             case TouchPhase.Ended:
                 _endTouchTime = Time.time;
@@ -314,10 +331,5 @@ public class PlayerController : MonoBehaviour
     {
         var dir = GetDirOfTouchAction(_beganTouchPosition, _currentTouchPosition);
         Move(dir.x, dir.y);
-    }
-
-    public Character GetMainPlayer()
-    {
-        return _character;
     }
 }
