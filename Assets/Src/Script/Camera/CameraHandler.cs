@@ -74,7 +74,7 @@ public class CameraHandler : MonoBehaviour
         {
             var character = collider.GetComponent<Character>();
             if (!character 
-                // || character.photonView == null
+                || character.photonView == null
                ) continue;
             if (character == _character) continue;
             return character;

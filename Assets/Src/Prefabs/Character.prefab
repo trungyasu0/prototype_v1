@@ -342,9 +342,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lockOnTransform: {fileID: 396025182542817473}
-  health: 100
-  id: 0
   state: 0
+  cameraHolder: {fileID: 0}
+  configStat: {fileID: 11400000, guid: fc349c6e0dd8fb74faea5729f5d0e152, type: 2}
+  photonView: {fileID: 0}
   nextState: 0
   timeResetQueueAction: 0.5
 --- !u!1 &7951828690747838994

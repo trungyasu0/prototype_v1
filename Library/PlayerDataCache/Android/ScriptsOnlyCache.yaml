@@ -9,6 +9,7 @@ ScriptsOnlyBuild:
     - NetworkingController
     - PlayerController
     - SpawnPlayers
+    - StatConfig
     PhotonUnityNetworking.Demos.dll:
     - Photon.Pun.Demo.Asteroids.Asteroid
     - Photon.Pun.Demo.Asteroids.Bullet
@@ -19,8 +20,6 @@ ScriptsOnlyBuild:
     - Photon.Pun.Demo.PunBasics.PlayerUI
     - Photon.Pun.Demo.SlotRacer.PlayerControl
     - Photon.Pun.Demo.SlotRacer.Utils.SplineWalker
-    PhotonUnityNetworking.Editor.dll:
-    - Photon.Pun.PunSceneSettings
     PhotonUnityNetworking.dll:
     - Photon.Pun.PhotonAnimatorView
     - Photon.Pun.PhotonRigidbodyView
@@ -44,10 +43,8 @@ ScriptsOnlyBuild:
     UnityEditor.Graphs.dll:
     - UnityEditor.Graphs.AnimationBlendTree.Graph
     - UnityEditor.Graphs.AnimationBlendTree.GraphGUI
-    - UnityEditor.Graphs.AnimationStateMachine.AnyStateNode
     - UnityEditor.Graphs.AnimationStateMachine.Graph
     - UnityEditor.Graphs.AnimationStateMachine.GraphGUI
-    - UnityEditor.Graphs.AnimationStateMachine.StateNode
     - UnityEditor.Graphs.AnimatorControllerTool
     UnityEditor.TestRunner.dll:
     - UnityEditor.TestTools.TestRunner.Api.CallbacksHolder
@@ -92,13 +89,13 @@ ScriptsOnlyBuild:
     - Class: 114
       Script: {instanceID: 3474}
     - Class: 114
-      Script: {instanceID: 3544}
+      Script: {instanceID: 3546}
     - Class: 114
-      Script: {instanceID: 3804}
+      Script: {instanceID: 3806}
     - Class: 114
-      Script: {instanceID: 3970}
+      Script: {instanceID: 3972}
     - Class: 114
-      Script: {instanceID: 5430}
+      Script: {instanceID: 5432}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 128
@@ -189,37 +186,39 @@ ScriptsOnlyBuild:
     - Class: 114
       Script: {instanceID: 3474}
     - Class: 114
-      Script: {instanceID: 3544}
+      Script: {instanceID: 3536}
     - Class: 114
-      Script: {instanceID: 3790}
+      Script: {instanceID: 3546}
     - Class: 114
-      Script: {instanceID: 3806}
+      Script: {instanceID: 3792}
     - Class: 114
-      Script: {instanceID: 3970}
+      Script: {instanceID: 3808}
     - Class: 114
-      Script: {instanceID: 4402}
+      Script: {instanceID: 3972}
     - Class: 114
-      Script: {instanceID: 4710}
+      Script: {instanceID: 4404}
     - Class: 114
-      Script: {instanceID: 4988}
+      Script: {instanceID: 4712}
     - Class: 114
-      Script: {instanceID: 5188}
+      Script: {instanceID: 4990}
     - Class: 114
-      Script: {instanceID: 5198}
+      Script: {instanceID: 5190}
     - Class: 114
-      Script: {instanceID: 5494}
+      Script: {instanceID: 5200}
     - Class: 114
-      Script: {instanceID: 5520}
+      Script: {instanceID: 5496}
     - Class: 114
-      Script: {instanceID: 5562}
+      Script: {instanceID: 5522}
     - Class: 114
-      Script: {instanceID: 6178}
+      Script: {instanceID: 5564}
     - Class: 114
-      Script: {instanceID: 6444}
+      Script: {instanceID: 6180}
     - Class: 114
-      Script: {instanceID: 6852}
+      Script: {instanceID: 6446}
     - Class: 114
-      Script: {instanceID: 6920}
+      Script: {instanceID: 6854}
+    - Class: 114
+      Script: {instanceID: 6922}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 128
@@ -314,21 +313,23 @@ ScriptsOnlyBuild:
     - Class: 114
       Script: {instanceID: 3474}
     - Class: 114
-      Script: {instanceID: 3790}
+      Script: {instanceID: 3536}
     - Class: 114
-      Script: {instanceID: 3806}
+      Script: {instanceID: 3792}
     - Class: 114
-      Script: {instanceID: 3970}
+      Script: {instanceID: 3808}
     - Class: 114
-      Script: {instanceID: 4402}
+      Script: {instanceID: 3972}
     - Class: 114
-      Script: {instanceID: 4906}
+      Script: {instanceID: 4404}
     - Class: 114
-      Script: {instanceID: 4988}
+      Script: {instanceID: 4908}
     - Class: 114
-      Script: {instanceID: 5520}
+      Script: {instanceID: 4990}
     - Class: 114
-      Script: {instanceID: 6852}
+      Script: {instanceID: 5522}
+    - Class: 114
+      Script: {instanceID: 6854}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 128
@@ -504,7 +505,7 @@ ScriptsOnlyBuild:
     className: GameVersionField
   - hash:
       serializedVersion: 2
-      Hash: 3aa496b40d75469d893b4bc4b5b7ea9c
+      Hash: 482fa0dd9ce139b6c361a4c4264f99c5
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: Character
@@ -1036,6 +1037,12 @@ ScriptsOnlyBuild:
     assemblyName: Unity.TextMeshPro.dll
     namespaceName: TMPro
     className: TMP_SelectionCaret
+  - hash:
+      serializedVersion: 2
+      Hash: 7ffe191eb4fbbddc95d7222af1ceb4a1
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: StatConfig
   - hash:
       serializedVersion: 2
       Hash: a306e12d896ddcca949923c805691027
@@ -2196,7 +2203,7 @@ ScriptsOnlyBuild:
     className: SendRateField
   - hash:
       serializedVersion: 2
-      Hash: 6a82daec522afecc10278a12f33c4b04
+      Hash: 232ebc51f1554d30375cc34991aac63d
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: CameraHandler
@@ -2229,4 +2236,4 @@ ScriptsOnlyBuild:
   - Assets/Scenes/LoginScene.unity
   - Assets/Scenes/JoinRoomScene.unity
   - Assets/Scenes/MainGameScene.unity
-  playerPath: C:/Users/Fresher_LOCAL/Desktop/prototype_v0.6.apk
+  playerPath: C:/Users/Fresher_LOCAL/Desktop/prototype_v0.7.apk

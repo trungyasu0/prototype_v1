@@ -131,6 +131,7 @@ MonoBehaviour:
   followSpeed: 3
   smoothTimeMove: 0.2
   currentTarget: {fileID: 0}
+  _character: {fileID: 3500621651455171331}
 --- !u!1 &6811630651171149207
 GameObject:
   m_ObjectHideFlags: 0
@@ -273,6 +274,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7951828690748264048, guid: c6b128573b9f0d1428e83b9edae8b673, type: 3}
   m_PrefabInstance: {fileID: 6811630650980383775}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &3500621651455171331 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7931807770324494108, guid: c6b128573b9f0d1428e83b9edae8b673, type: 3}
+  m_PrefabInstance: {fileID: 6811630650980383775}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3521067157046816271}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83eab11bbeda2a649afce7db2f6891f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &8619357220559528694 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2961642619106434793, guid: c6b128573b9f0d1428e83b9edae8b673, type: 3}
